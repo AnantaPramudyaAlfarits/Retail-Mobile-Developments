@@ -102,11 +102,86 @@ CREATE TABLE users (
 
 ### 1️⃣ Setup Supabase Database
 
+#### Opsi A: Menggunakan Script SQL (Rekomendasi ⭐)
+
 1. Buka https://app.supabase.com dan login dengan akun Anda
 2. Buat project baru atau gunakan yang sudah ada
-3. Masuk ke **SQL Editor**
-4. Copy-paste SQL schema dari bagian [Database Schema](#-database-schema) di atas
-5. Klik **Run** untuk membuat tabel
+3. Masuk ke **SQL Editor** → **New Query**
+4. Buka file `retail-buah-backend/SCHEMA.sql` di project ini
+5. Copy-paste **SELURUH** isi file ke SQL Editor
+6. Klik **Run** (atau Ctrl+Enter) untuk membuat semua tabel sekaligus
+
+**Output yang diharapkan:**
+```
+✅ CREATE TABLE products
+✅ CREATE TABLE transactions  
+✅ CREATE TABLE users
+✅ CREATE POLICY
+✅ Sample data inserted
+```
+
+#### Opsi B: Manual (Jika tidak bisa copy-paste)
+
+Jika script tidak bisa di-run sekaligus, jalankan per bagian:
+
+1. **Buat tabel products:**
+```sql
+CREATE TABLE IF NOT EXISTS products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama VARCHAR(255) NOT NULL,
+  harga INTEGER NOT NULL,
+  stok INTEGER NOT NULL,
+  image_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+2. **Buat tabel transactions:**
+```sql
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id),
+  product_name VARCHAR(255) NOT NULL,
+  quantity INTEGER NOT NULL,
+  price INTEGER NOT NULL,
+  total_price INTEGER NOT NULL,
+  tanggal TIMESTAMP DEFAULT NOW(),
+  image_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+3. **Buat tabel users:**
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role VARCHAR(50) DEFAULT 'staff',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### ✅ Verify Database
+
+Untuk memverifikasi database sudah dibuat dengan benar:
+
+```sql
+-- Lihat struktur tabel
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public';
+
+-- Lihat semua kolom di tabel products
+\d products
+```
+
+**Expected output:**
+```
+ products
+ transactions
+ users
+```
 
 ### 2️⃣ Setup Backend (Node.js)
 
@@ -275,15 +350,28 @@ Retail-Mobile-Developments/
 │   └── pubspec.yaml
 │
 ├── retail-buah-backend/             # Backend Node.js + Express
-│   ├── server.js                    # Main API server
+│   ├── **SCHEMA.sql**              # ⭐ FILE PENTING - Database Schema (import ke Supabase)
+│   ├── .env.example                # Template .env
+│   ├── server.js                   # Main API server
 │   ├── models/
 │   │   ├── Product.js
 │   │   ├── User.js
 │   ├── package.json
-│   ├── .env                         # Environment variables (create this)
-│   └── uploads/                     # Folder untuk penyimpanan gambar
+│   ├── .env                        # Environment variables (create this)
+│   └── uploads/                    # Folder untuk penyimpanan gambar
 │
-└── README.md                        # File ini
+└── README.md                       # File ini
+
+---
+
+### 📌 File-File Penting untuk Setup
+
+| File | Tujuan | Aksi |
+|------|--------|------|
+| `SCHEMA.sql` | Database schema lengkap | Copy-paste ke Supabase SQL Editor |
+| `.env.example` | Template konfigurasi | Copy ke `.env` dan isi dengan credentials |
+| `server.js` | API backend | Jalankan dengan `npm start` |
+| `pubspec.yaml` | Flutter dependencies | Jalankan `flutter pub get` |
 
 ---
 
